@@ -1,27 +1,34 @@
 import streamlit as st
+import pandas as pd
+import io
 
-# Title of the application
-st.title("Basic Calculator")
+def convert_xlsx_to_csv(xlsx_file):
+    # Read the uploaded Excel file
+    df = pd.read_excel(xlsx_file)
+    
+    # Convert to CSV format in-memory
+    csv_data = df.to_csv(index=False)
+    
+    # Return the CSV data as a byte stream
+    return io.BytesIO(csv_data.encode())
 
-# Get user input for two numbers
-num1 = st.number_input("Enter the first number", value=0)
-num2 = st.number_input("Enter the second number", value=0)
+def main():
+    st.title("XLSX to CSV Converter")
 
-# Display operation buttons
-operation = st.selectbox("Select an operation", ("Add", "Subtract", "Multiply", "Divide"))
+    # Step 1: Upload .xlsx file
+    uploaded_file = st.file_uploader("Choose an XLSX file", type="xlsx")
+    
+    if uploaded_file is not None:
+        # Step 2: Convert the uploaded XLSX file to CSV
+        converted_csv = convert_xlsx_to_csv(uploaded_file)
+        
+        # Step 3: Provide the option to download the converted CSV
+        st.download_button(
+            label="Download CSV",
+            data=converted_csv,
+            file_name="converted_file.csv",
+            mime="text/csv"
+        )
 
-# Perform the calculation based on selected operation
-if operation == "Add":
-    result = num1 + num2
-elif operation == "Subtract":
-    result = num1 - num2
-elif operation == "Multiply":
-    result = num1 * num2
-elif operation == "Divide":
-    if num2 != 0:
-        result = num1 / num2
-    else:
-        result = "Error! Division by zero."
-
-# Display the result
-st.write("Result: ", result)
+if __name__ == "__main__":
+    main()
