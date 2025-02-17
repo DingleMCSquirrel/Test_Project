@@ -8,32 +8,27 @@ money_machine = MoneyMachine()
 coffee_maker = CoffeeMaker()
 menu = Menu()
 
-# Streamlit UI setup
-st.title("Coffee Maker Machine")
+# Page title
+st.title("Coffee Maker")
 
-# Display menu items
+# Display the menu items
+st.header("Menu")
 options = menu.get_items()
-choice = st.selectbox("What would you like?", options)
 
-# Button for ordering
-if st.button("Order Coffee"):
-    if choice == "report":
-        st.text(coffee_maker.report())
-        st.text(money_machine.report())
+# Let the user enter the coffee choice
+choice = st.text_input("Enter the coffee you would like to order:")
+
+# Handle the order submission
+if choice:
+    drink = menu.find_drink(choice)
+    if drink and coffee_maker.is_resource_sufficient(drink)[0] and money_machine.make_payment(drink.cost, {}):
+        coffee_maker.make_coffee(drink)
+        st.write(f"☕ Enjoy your {choice}!")
     else:
-        drink = menu.find_drink(choice)
-        if drink and coffee_maker.is_resource_sufficient(drink):
-            coin_data = {
-                "quarters": st.number_input("How many quarters?", min_value=0),
-                "dimes": st.number_input("How many dimes?", min_value=0),
-                "nickles": st.number_input("How many nickles?", min_value=0),
-                "pennies": st.number_input("How many pennies?", min_value=0)
-            }
-            payment_successful, change = money_machine.make_payment(drink.cost, coin_data)
-            if payment_successful:
-                coffee_maker.make_coffee(drink)
-                st.success(f"Enjoy your {choice}! Change: ${change}")
-            else:
-                st.error("Not enough money!")
-        else:
-            st.error("Not enough resources to make this drink!")
+        st.write("❌ Not enough resources or payment failed.")
+
+# Display the current resources and cash
+if st.button("Show Report"):
+    st.write(f"### Resources Report")
+    st.text(coffee_maker.report())
+    st.write(money_machine.report())
